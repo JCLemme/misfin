@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
  
 #   _______
-#  |==   []|  misfin protocol
+#  |==   []|  misfin(a) protocol
 #  |  ==== |  implemented in one file
 #  '-------'  lem (2023)
 
@@ -396,8 +396,10 @@ def receive_forever(server, is_allowed_method=_allow_anything, received_method=_
             # ...and do something about it
             peer = Identity(connection.get_peer_certificate())
             receive_from(connection, server, peer, is_allowed_method, received_method)
+
         except ossl.Error as err:
             print("Client disconnected before finishing.")
+
         except Exception as err:
             print(err)
             print("Aborting receive due to exception.")
@@ -410,10 +412,10 @@ if __name__ == "__main__":
 
     # I wasn't kidding.
     def print_usage():
-        print("usage: python -m misfin [make-cert mailbox blurb hostname output.who]")
-        print("usage:                  [cert-from parent.who mailbox blurb output.who]")
-        print("usage:                  [send-as identity.who destination 'subject' 'message']")
-        print("usage:                  [receive-as identity.who]")
+        print("usage: python -m misfin_a [make-cert mailbox blurb hostname output.who]")
+        print("usage:                    [cert-from parent.who mailbox blurb output.who]")
+        print("usage:                    [send-as identity.who destination 'subject' 'message']")
+        print("usage:                    [receive-as identity.who]")
         sys.exit(-1)
 
     try:
