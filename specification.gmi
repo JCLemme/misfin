@@ -47,7 +47,7 @@ Like requests, response strings are UTF-8 encoded and should not exceed 2048 byt
 
 ## 2 Status codes
 
-Misfin servers send a two-digit status code in their response to the client, which either gives it the go-ahead to send message data, or explains why the transfer is disallowed. The status code's category is indicated by the first digit, so simple clients only need to read the first character of the response to know, broadly, what it should do.
+Misfin servers send a two-digit status code in their response to the client, which either confirms the message was delivered, or explains why it wasn't. The status code's category is indicated by the first digit, so simple clients only need to read the first character of the response to know, broadly, what it should do.
 
 These status codes are designed to be compatible with Gemini's, so developers comfortable with Gemini status codes should intuitively know the meaning of Misfin status codes. 
 

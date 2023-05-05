@@ -5,7 +5,7 @@ misfin (is) mail (for the) small web
 
     misfin://hello@misfin.org What's up?\r\n
     ↓↓↓↓
-    20 1e:9f:11:e4:8f:aa:12:b3:cb
+    20 1e:9f:11:e4:8f:aa:12:b3:cb...
 
 what is this?
 -------------
