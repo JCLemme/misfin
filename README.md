@@ -9,7 +9,7 @@ misfin (is) mail (for the) small web
 
 what is this?
 -------------
-Misfin is to email what Gemini is to the Web. Set up a Misfin server alongside your Gemini capsule, and start networking with other capsuleers - no signup required. For the full details, see gemini://misfin.org.
+Misfin is to email what Gemini is to the Web. Set up a Misfin server alongside your Gemini capsule, and start networking with other capsuleers - no signup required. For the full details, see gemini://misfin.org/ .
 
 details?
 --------
