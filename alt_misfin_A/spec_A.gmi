@@ -1,0 +1,124 @@
+# The Misfin mail protocol (prototype A)
+
+## 1 Overview
+
+Misfin is a client-server mail transport protocol, broadly similar to SMTP and heavily influenced by Gemini. All connections follow the pattern request-response-proceed, and are closed at the end of this transaction.
+
+Misfin servers on TCP/IP should be bound to port 1958, which is unprivledged and should be accessible without administrator permissions on most systems. 
+
+### 1.1 Misfin transactions
+
+The sole type of Misfin transaction delivers a message from a client to a server. This transaction proceeds as so:
+
+C: Opens connection
+S: Accepts connection
+C/S: Complete TLS handshake
+C/S: Validate peer's certificate[s]
+C: Sends one CRLF terminated line - the request
+S: Sends one CRLF terminated line - the response
+C: If response is OK, sends the rest of the message to the server
+C: Closes connection, handling response if not OK
+
+Clients should, but are not obligated to, wait for the server to send the go-ahead to start sending message data. Both clients and servers should gracefully handle connections that close before they are expected to.
+
+### 1.2 Misfin request scheme
+
+A single request line is sent by the Misfin client to a Misfin server, following this structure:
+
+<MAILBOX>@<HOSTNAME> <SPACE> <MIMETYPE> <SPACE> <SUBJECT> <CR><LF>
+
+MAILBOX is the user receiving the message.
+HOSTNAME is the domain name that points to the Misfin server.
+MIMETYPE is the MIME media type of the message, as per RFC 2046.
+SPACE is a single space character, i.e. the byte 0x20.
+
+The remainder of the request following the second SPACE, and up until the terminating CRLF, makes up the SUBJECT, which is (usually) a short description of the following message. All strings are UTF-8 encoded, and the entire request should not exceed 1024 bytes.
+
+By including the hostname of the server in the request, advanced Misfin servers can host mailboxes for multiple domains on the same host, ~or provide a relay service for mailboxes hosted on private servers.~ Servers are not required to implement this feature, and are only expected to service mail for a single domain.
+
+### 1.3 Misfin response scheme
+
+The Misfin server will send a single response line to the requesting client, following this structure:
+
+<STATUS> <SPACE> <META> <CR><LF>
+
+STATUS is a two-digit numeric status code.
+META is a string whose meaning is defined by the status code.
+
+Like requests, response strings are UTF-8 encoded and should not exceed 1024 bytes in length. If the server does not respond with a status code in the "SUCCESS" range, it must close the connection immediately after sending its response. 
+
+### 1.4 Misfin data transfer scheme
+
+If the client receives a "SUCCESS" status, it means that the server is prepared to read their message. The default "SUCCESS" status is 20, and its META string is the maximum amount of data, in bytes, that the server will receive.
+
+The client should then start sending data to the server, up to the server's maximum size. A client should not send more data than the server asks for; a server must not receive any more data past its maximum size.
+
+Simple clients are allowed to ignore the server's response, and immediately follow their request with the message data; servers should not assume that the client will wait after sending the request. These simple clients should be prepared to handle the connection closing before they finish sending the message data, as servers are still obligated to close the connection after sending a non "SUCCESS" status or after receiving their maximum amount of data.
+
+## 2 Status codes
+
+Misfin servers send a two-digit status code in their response to the client, which either gives it the go-ahead to send message data, or explains why the transfer is disallowed. The status code's category is indicated by the first digit, so simple clients only need to read the first character of the response to know, broadly, what it should do.
+
+These status codes are designed to be compatible with Gemini's, so developers comfortable with Gemini status codes should intuitively know the meaning of Misfin status codes. 
+
+### 2.1 1x (INPUT)
+
+These codes are reserved, and must not be sent by a Misfin server.
+
+### 2.2 2x (SUCCESS)
+
+Status codes beginning with 2 are SUCCESS status codes, which mean that the client can begin sending message data to the server.
+
+### 2.3 3x (REDIRECT)
+
+Status codes beginning with 3 are REDIRECT status codes, which tell the client to resend their request to a different Misfin server.
+
+### 2.4 4x (TEMPORARY FAILURE)
+
+Status codes beginning with 4 are TEMPORARY FAILURE status codes, which mean the request did not succeed, but might succeed if retried in the future.
+
+### 2.5 5x (PERMANENT FAILURE)
+
+Status codes beginning with 5 are PERMANENT FAILURE status codes, which mean the request did not succeed, and should not be retried.
+
+### 2.6 6x (AUTHENTICATION FAILURE)
+
+Status codes beginning with 6 are AUTHENTICATION FAILURE status codes, which mean that there was an issue with the client's certificate.
+
+## 3 TLS
+
+The use of TLS is mandatory for Misfin transactions. The use of Server Name Indication extensions is also mandatory, to facilitate name-based server identification.
+
+The minimum permissible version of TLS allowed for transactions is TLS 1.2, but clients and servers may choose a more recent version of TLS to support and disallow connections from earlier versions.
+
+Misfin clients and servers must send a TLS "close-notify" prior to closing the connection, so that a complete transaction can be distinguished from one that has ended prematurely.
+
+### 3.1 Host and mailbox certificates
+
+Senders and recipients are identified via x509 certificates, sent as part of a Misfin transaction's TLS handshake. Host certificates are sent by Misfin servers and may be self-signed; mailbox certificates are sent by Misfin clients and must be signed by a host certificate. A simple Misfin server can serve a self-signed certificate that is its own host certificate, if a single mailbox is desired.
+
+Misfin certificates store data in the USER_ID and COMMON_NAME fields of both the subject and issuer Distinguished Names (DNs), as per RFC 4514. The USER_ID field stores the certificate's associated mailbox identifier. The COMMON_NAME field stores a human-readable description of the mailbox, or the mailbox owner's name/pseudonym. Other fields in the subject and issuer DNs can be present, but are not required to be present, and should not be relied on by Misfin utilities.
+
+A Misfin address is assembled from the subject's USER_ID and the certificate's SubjectAltName. 
+
+A host certificate must have its CA constraint enabled, so that it can be used to cryptographically verify its mailbox certificates, or it should be signed by another, trusted CA. 
+
+### 3.2 Certificate validation
+
+Misfin clients and servers must send certificates during a transaction, but have no obligation to verify these certificates; however, this is highly, highly discouraged.
+
+Like Gemini, the default validation method for certificates is TOFU, or Trust on First Use. Misfin clients and servers should store the fingerprint of a received certificate the first time it is received, and subsequent certificates from that client or server should be matched against the stored fingerprint. 
+
+Advanced Misfin servers may perform CA validation in addition to TOFU. In this scheme, upon receiving a message from a sender with an unrecognized host, the Misfin server may perform a single blank request to the sender's host, and store its certificate. That stored certificate can then be used to verify the certificates of senders purporting to be from that host.
+
+Certificates may be signed by other CAs; Misfin servers may choose to verify these signatures, but are not required to.
+
+### 3.3 Security implications
+
+TOFU is a better-than-nothing strategy that should be suitable for most Misfin users; as long as you've successfully interacted with a legitimate sender once, future attempts to intercept or forge interactions with them will fail.
+
+CA validation is even better; you only need to have an uncompromised connection to a server once, and you can then verify the legitimacy of anyone reporting to have a mailbox with them. This method also has the effect of disallowing messages from senders that are not associated with a Misfin server, which might be desireable in some cases.
+
+Since the sender of a message is identified solely by their certificate, it is not possible to spoof the sender's address in a way that is not visible to the recipient. For instance, you could generate a new, self-signed certificate claiming to be bob@example.com, and send mail pretending to be Bob; however, any replies to those messages will be delivered to the Misfin server at example.com, and not to you. 
+
+

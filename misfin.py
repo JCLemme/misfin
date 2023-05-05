@@ -204,7 +204,6 @@ class Response:
         51: "mailbox doesn't exist",
         52: "mailbox has been removed",
         53: "that domain isn't served here",
-        54: "filetype not allowed",
         59: "bad request",
 
         60: "certificate required",
