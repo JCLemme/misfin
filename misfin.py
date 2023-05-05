@@ -311,7 +311,7 @@ def _allow_anything(server, peer, request):
     if request.mailbox == server.mailbox():
         return Response.delivered(server.fingerprint())
     else:
-        print("...but we aren't {}, we're {}".format(server.mailbox(), request.mailbox))
+        print("...but we aren't {}, we're {}".format(request.mailbox, server.mailbox()))
         return Response.of(51)
 
 def receive_from(connection, server, peer, is_allowed_method):
