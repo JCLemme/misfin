@@ -364,6 +364,7 @@ def receive_forever(server, is_allowed_method=_allow_anything, check_valid_metho
             print(err)
             print("Aborting receive due to exception.")
 
+
 # ----------
 # Stupid simple command-line interface.
 
