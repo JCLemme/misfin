@@ -55,7 +55,7 @@ These status codes are designed to be compatible with Gemini's, so developers co
 These codes are reserved, and must not be sent by a Misfin server.
 
 ### 2.2 2x (SUCCESS)
-Status codes beginning with 2 are SUCCESS status codes, which mean that the client can begin sending message data to the server.
+Status codes beginning with 2 are SUCCESS status codes, which mean that the client's message has been delivered.
 
 #### 20 <fingerprint> - MESSAGE DELIVERED
 The message was delivered successfully. The META tag is the fingerprint of the recipient's certificate, in SHA256 format.
