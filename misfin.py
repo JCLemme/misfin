@@ -422,6 +422,6 @@ if __name__ == "__main__":
 
     except Exception as err:
         # Hehe
-        raise err
+        # raise err
         print(err)
         print_usage()
