@@ -1,4 +1,5 @@
 # The Misfin mail protocol (prototype B)
+Updated 6 May 2023
 
 ## 1 Overview
 
@@ -164,4 +165,69 @@ CA validation is even better; you only need to have an uncompromised connection 
 
 Since the sender of a message is identified solely by their certificate, it is not possible to spoof the sender's address in a way that is not visible to the recipient. For instance, you could generate a new, self-signed certificate claiming to be bob@example.com, and send mail pretending to be Bob; however, any replies to those messages will be delivered to the Misfin server at example.com, and not to you. 
 
+## 4 Mail file format (gemmail)
 
+The default encoding of Misfin messages is text/gemini; however, Misfin extends this by adding two new line types. Misfin utilites must only parse the first occurance of these lines in a file.
+
+Misfin clients and servers are welcome to store any other message information (e.g. timestamps), but must not do so in the message itself.
+
+### 4.1 Sender line
+
+The sender line records the Misfin address of the user that sent the message. Sender lines begin with a single "<" character, and have this syntax:
+```
+< mailbox@hostname.com blurb
+```
+The whitespace separating the < and the address is optional. The blurb is also optional, but if it is included, it must be separated from the address by whitespace.
+
+Sender lines should be added by the server when saving or retransmitting a message. If a message is forwarded, the original sender line should be preserved and sent alongside, so the final recipient will see both senders:
+```
+< development@mailing-lists.com Development mailing list
+< source@example.com Source user
+...
+```
+
+### 4.2 Recipients line
+
+The recipients line begins with a single ":" character, and denotes all receivers of a message, separated by whitespace:
+```
+: one@example.com two@example.com three@example.com ...
+```
+When replying to a Misfin message, it should be delivered to the address in the sender line (if present), followed by the addresses in the recipients line. Misfin clients are required to check for duplicate addresses, and not send multiple copies of the message to the same recipient. Misfin clients must also check to make sure they are not sending mail back to their sending address.
+
+### 4.3 Message subject
+
+The first heading line in a file, if provided, should be considered as the message's subject, and advanced Misfin utilities may elect to show it to the user in place of the full message contents.
+
+### 4.4 Example messages
+
+The simplest messages may just consist of a sender line:
+```
+< friend@example.com Your Friend
+
+What's up?
+```
+
+A group message can be sent with a recipients line:
+```
+< one@example.com Person One
+: two@example.com three@example.com
+
+A funny joke
+```
+...and the replies will have the addresses shuffled around to make sense:
+```
+< two@example.com Person Two
+: one@example.com three@example.com
+
+Rolling on the floor laughing
+```
+
+A message from a mailing list might read:
+```
+< workers@hive.com Worker bees list
+< 33@hive.com Bee 33
+
+# A note on flowers
+
+The green snappy looking ones are venus flytraps and you SHOULD NOT interact
+```

@@ -164,7 +164,7 @@ class Request:
         if not req.startswith("misfin://"): raise TypeError("Not a Misfin request")
         req = req.removeprefix("misfin://")
 
-        # Make sure we have the whole request, and save any body that might have made it through
+        # Make sure we have the whole request
         if "\r\n" not in req: raise ValueError("Incomplete request")
         header, _ = req.split("\r\n", 1)
     
@@ -180,7 +180,7 @@ class Request:
         """ Builds the Misfin request. """
         return "misfin://{}@{} {}\r\n".format(self.mailbox, self.host, self.message)
 
-# A Misfin server response - either a go ahead, or some flavor of error.
+# A Misfin server response - either a success, or some flavor of error.
 class Response:
     """ Tells the client what to do - either a go ahead, or some flavor of error. """
 
@@ -323,7 +323,7 @@ def receive_from(connection, server, peer, is_allowed_method):
         connection.write(bytes(response.build(), 'utf-8'))
 
     except Exception as err:
-        # Something fucked up, be nice and tell the client.
+        # Something fucked up, be nice and tell the client before handling it.
         connection.write(bytes(Response.of(40).build(), "utf-8"))
         raise err
 
