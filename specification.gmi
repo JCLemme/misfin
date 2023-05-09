@@ -1,5 +1,6 @@
 # The Misfin mail protocol (prototype B)
-Updated 6 May 2023
+(updated 9 May 2023)
+(for comments, suggestions, well-wishes, insults, etc. - send a Misfin letter to rfc@misfin.org)
 
 ## 1 Overview
 
@@ -167,9 +168,7 @@ Since the sender of a message is identified solely by their certificate, it is n
 
 ## 4 Mail file format (gemmail)
 
-The default encoding of Misfin messages is text/gemini; however, Misfin extends this by adding two new line types. Misfin utilites must only parse the first occurance of these lines in a file.
-
-Misfin clients and servers are welcome to store any other message information (e.g. timestamps), but must not do so in the message itself.
+The default encoding of Misfin messages is text/gemini; however, Misfin extends this by adding three new line types. Misfin utilites must only parse the first occurance of these lines in a file.
 
 ### 4.1 Sender line
 
@@ -194,11 +193,27 @@ The recipients line begins with a single ":" character, and denotes all receiver
 ```
 When replying to a Misfin message, it should be delivered to the address in the sender line (if present), followed by the addresses in the recipients line. Misfin clients are required to check for duplicate addresses, and not send multiple copies of the message to the same recipient. Misfin clients must also check to make sure they are not sending mail back to their sending address.
 
-### 4.3 Message subject
+A recipient line can added for messages going to only one person, but since replies go to the sending address anyway, this shouldn't be done - it's overkill.
+
+### 4.3 Timestamp line
+
+This line type is a work in progress, but the intention is to record when the message was received - useful if your mailbox is implemented as a single text file (like UNIX back in the day) or when forwarding a message. 
+
+Timestamp lines begin with a single "@" character, and are followed by a UNIX timestamp (seconds since 1/1/1970), or the time in ISO-8601 format:
+```
+@ 1683662654
+- or -
+@ 2023-05-09T19:39:15Z
+```
+We're still discussing what format this should be - timestamps aren't human readable, but they're consistent across timezones and are easily parsed. Please send feedback! 
+
+Like sender lines, timestamp lines should be added by the receiving mailserver, and only sent if forwarding a message, in which case they should be left as-is.
+
+### 4.4 Message subject
 
 The first heading line in a file, if provided, should be considered as the message's subject, and advanced Misfin utilities may elect to show it to the user in place of the full message contents.
 
-### 4.4 Example messages
+### 4.5 Example messages
 
 The simplest messages may just consist of a sender line:
 ```
