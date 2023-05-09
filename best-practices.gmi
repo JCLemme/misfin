@@ -30,7 +30,7 @@ You don't need to store mail with sender/recipient/timestamp lines, if you want 
 
 Misfin servers are allowed to serve other protocols, which is why requests have "misfin://" prepended. The intention is to use this for serving attachments or mailboxes over Gemini. Don't add Misfin support to your Gemini server if it's not listening over port 1958! Clients are welcome to support sending mail to mailservers on alternate ports, but for everyone else's sake, keep your mailserver on the known port.
 
-The fingerprint sent alongside a 20 status code should be the fingerprint of that mailbox, if it has its own certificate. Alongside securing attachments, the fingerprint is intended for use validating message you've received, via sending a blank message back to the sender's address and seeing if the fingerprint matches. Obviously, this won't work if you're not sending the right fingerprint. 
+The fingerprint sent alongside a 20 status code should be the fingerprint of that mailbox, if it has its own certificate. Alongside securing attachments, the fingerprint is intended for use validating senders of messages you've received, via sending a blank message back to the sender's address and seeing if the fingerprint matches. Obviously, this won't work if you're not sending the right fingerprint. 
 
 Mailboxes that don't have their own certificate - in other words, a mailbox that doesn't strictly *exist* on the mailserver, but that the mailserver chooses to receive mail for - are an open question. I'm leaning towards sending the fingerprint of the mailserver's certificate, but maybe we're better off sending nothing and letting clients interpret that as "can't receive from them".
 
