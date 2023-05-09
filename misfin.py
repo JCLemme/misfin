@@ -306,7 +306,8 @@ def _allow_anything(server, peer, request):
     """ SCARY! Only use for testing. """
     print("Incoming from {} ({})".format(peer.blurb(), peer.address()))
     print("Fingerprint is {}".format(peer.fingerprint()))
-    print("Message: {}".format(request.message))
+    print("Message (sent to {}):".format(request.mailbox))
+    print("{}".format(request.message))
 
     if request.mailbox == server.mailbox():
         return Response.delivered(server.fingerprint())
@@ -325,6 +326,11 @@ def receive_from(connection, server, peer, is_allowed_method):
     except Exception as err:
         # Something fucked up, be nice and tell the client before handling it.
         connection.write(bytes(Response.of(40).build(), "utf-8"))
+
+        print("Error during receive - here's what we recovered:")
+        print(peer.address())
+        print(request.message)
+
         raise err
 
     # Skadoodle
@@ -353,12 +359,15 @@ def receive_forever(server, is_allowed_method=_allow_anything, check_valid_metho
             connection.set_accept_state()
             connection.do_handshake()
 
+            print("Incoming connection at {}".format(datetime.datetime.isoformat()))
+
             # ...and do something about it
             peer = Identity(connection.get_peer_certificate())
             receive_from(connection, server, peer, is_allowed_method)
 
         except ossl.Error as err:
-            print("Client disconnected before finishing.")
+            print(err)
+            print("Client disconnected before sending a request.")
 
         except Exception as err:
             print(err)
