@@ -359,7 +359,7 @@ def receive_forever(server, is_allowed_method=_allow_anything, check_valid_metho
             connection.set_accept_state()
             connection.do_handshake()
 
-            print("Incoming connection at {}".format(datetime.datetime.isoformat()))
+            print("Incoming connection at {}".format(datetime.datetime.utcnow()))
 
             # ...and do something about it
             peer = Identity(connection.get_peer_certificate())
