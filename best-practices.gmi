@@ -1,5 +1,5 @@
 # Best practices for Misfin clients and servers
-(updated 9 May 2023)
+(updated 11 May 2023)
 (for comments, suggestions, well-wishes, insults, etc. - send a Misfin letter to rfc@misfin.org)
 
 This is a living document, listing (in no particular order) things that Misfin software writers *should* keep in mind. Expect things to change as the first real servers and clients get written, and of course feel free to make suggestions.
@@ -35,6 +35,8 @@ The fingerprint sent alongside a 20 status code should be the fingerprint of tha
 Mailboxes that don't have their own certificate - in other words, a mailbox that doesn't strictly *exist* on the mailserver, but that the mailserver chooses to receive mail for - are an open question. I'm leaning towards sending the fingerprint of the mailserver's certificate, but maybe we're better off sending nothing and letting clients interpret that as "can't receive from them".
 
 The reference implementation generates 2048-bit RSA keys, but anything supported by TLS should also be supported by Misfin. It was suggested that lighter devices might benefit from using elliptical-curve or ASCON keys, which are smaller.
+
+A fun bug discovered in the reference implementation: don't assume the client or server will send its *whole* message in one go. Set a timeout and attempt to read until you get CRLF.
 
 ## 4 "Do something sensible"
 
