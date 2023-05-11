@@ -23,12 +23,13 @@ For the moment though? Download the reference implementation, make a certificate
 
 run your own
 ------------
-There isn't a production mailserver written yet, but you can run the testing suite and send/receive mail. Run `python -m misfin` to see how. (You'll need to install `pyopenssl` first).
+There isn't a production mailserver written yet, but you can run the (new! improved!) testing suite and send/receive mail. Run `python -m transponder.debug` to see how. (You'll need to install `pyopenssl` first).
 
-    python -m misfin make-cert queen "Queen bee" hive.com queen_hive.pem
-    python -m misfin receive-as queen_hive.pem
+    python -m transponder.debug make-cert queen "Queen bee" hive.com queen_hive.pem
+    python -m transponder.debug receive-as queen_hive.pem
 
     ...
 
-    python -m misfin make-cert bee "Worker bee" hive.com bee_hive.pem
-    python -m misfin send-as bee_hive.pem queen@hive.com "Where's the flowers at"
+    python -m transponder.debug make-cert bee "Worker bee" hive.com bee_hive.pem
+    python -m transponder.debug send-as bee_hive.pem queen@hive.com "Where's the flowers at"
+

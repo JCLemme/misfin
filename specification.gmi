@@ -1,5 +1,5 @@
 # The Misfin mail protocol (prototype B)
-(updated 9 May 2023)
+(updated 11 May 2023)
 (for comments, suggestions, well-wishes, insults, etc. - send a Misfin letter to rfc@misfin.org)
 
 ## 1 Overview
@@ -32,7 +32,7 @@ MAILBOX is the user receiving the message.
 HOSTNAME is the domain name that points to the Misfin server.
 SPACE is a single space character, i.e. the byte 0x20.
 
-The remainder of the request following the SPACE, and up until the terminating CRLF, makes up the MESSAGE, which is assumed to be Gemtext. All strings are UTF-8 encoded, and the entire request should not exceed 2048 bytes.
+The remainder of the request following the SPACE, and up until the terminating CRLF, makes up the MESSAGE, which is assumed to be Gemtext (text/gemini). All strings are UTF-8 encoded, and the entire request should not exceed 2048 bytes.
 
 By including the hostname of the server in the request, advanced Misfin servers can host mailboxes for multiple domains on the same host. Servers are not required to implement this feature, and are only expected to service mail for a single domain.
 
@@ -170,7 +170,7 @@ Since the sender of a message is identified solely by their certificate, it is n
 
 ## 4 Mail file format (gemmail)
 
-The default encoding of Misfin messages is text/gemini; however, Misfin extends this by adding three new line types. Misfin utilites must only parse the first occurance of these lines in a file.
+The default encoding of Misfin messages is text/gemini; however, Misfin extends this by adding three new line types. Misfin utilites must only parse the first occurance of these lines in a file. 
 
 ### 4.1 Sender line
 
@@ -238,7 +238,7 @@ Rolling on the floor laughing
 A message from a mailing list might read:
 ```
 < workers@hive.com Worker bees list
-< 33@hive.com Bee 33
+< 33@hive.com Bee #33
 
 # A note on flowers
 
