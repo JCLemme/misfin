@@ -11,10 +11,9 @@ from transponder.misfin import Request
 
 # this is software in flux - don't rely on it
 
-
 class Letter:
     """ A Misfin letter, with the ability to parse gemmail lines. """
-    """ This class is !nasty! and needs rework. """
+    """ This class is still being worked on, but is a lot less nasty than it was """
 
     def __init__(self, sender: LocalIdentity, recipients: list[Identity], message: str, received_at=datetime.datetime.now()):
         self.sender = sender
@@ -22,50 +21,53 @@ class Letter:
         self.message = message
         self.received_at = received_at
 
-    def _extract_recipients(message):
-        found = []
-        lines = message.splitlines()
-        for i, line in enumerate(lines):
-            if len(line) > 0 and line[0] == ":":
-                line = line.removeprefix(":").strip()
-                del lines[i]
-                addrs = line.split(" ")
-                for a in addrs:
-                    try: found.append(Identity(a))
-                    except: pass
+    def _seek_and_destroy(message, linetype):
+        """ Extracts out the first line of a given type from the message. """
+        found = None
+        message_lines = message.splitlines()
+        for idx, line in enumerate(message_lines):
+            if len(line) > 0 and line[0] == linetype:
+                found = line.removeprefix(linetype).strip()
+                del message_lines[i]
+                break
 
-        return found, "\n".join(lines)
+        return found, "\n".join(message_lines)
 
     def _extract_sender(message):
-        sender = None       
-        lines = message.splitlines()
-        for i, line in enumerate(lines):
-            if len(line) > 0 and line[0] == "<":
-                line = line.removeprefix("<").strip()
-                del lines[i]
-                addy = line.split(" ", 1)
-                address = addy[0]
-                blurb = ""
-                if len(addy) > 1: blurb = addy[1]
-                try: sender = Identity(address, blurb=blurb)
-                except: pass
-                break
+        found, message = super()._seek_and_destroy(message, "<")
+        if found is None: return None, message
 
-        return sender, "\n".join(lines)
+        sender = None
+        contents = found.split(" ", 1)
+        address = contents[0]
+
+        if len(contents) > 1: blurb = contents[1]
+        else: blurb = ""
+
+        try: sender = Identity(address, blurb)
+        except: pass
+
+        return sender, message
+
+    def _extract_recipients(message):
+        found, message = super()._seek_and_destroy(message, ":")
+        if found is None: return None, message
+
+        recipients = []
+        for address in found:
+            try: recipients.append(Identity(address))
+            except: pass
+
+        return recipients, message
 
     def _extract_timestamp(message):
-        timest = None
-        lines = message.splitlines()
-        for i, line in enumerate(lines):
-            if len(line) > 0 and line[0] == "@":
-                line = line.removeprefix("@").strip()
-                del lines[i]
-                marked, *_ = line.split(" ", 1)
-                try: timest = datetime.fromisoformat(marked)
-                except: pass
-                break
+        found, message = super()._seek_and_destroy(message, "@")
+        if found is None: return None, message
 
-        return timest, "\n".join(lines)
+        try: timestamp = datetime.fromisoformat(found)
+        except: timestamp = None
+
+        return timestamp, message
 
     @classmethod
     def incoming(cls, sender: Identity, req: Request):
