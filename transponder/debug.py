@@ -72,6 +72,17 @@ if __name__ == "__main__":
 
             print(tmm.send_as(ident, msg))
 
+        elif command == "send-file":
+            sender, destination, mfile = sys.argv[2:]
+
+            loaded_pem = open(sender, "rb").read()
+            ident = LocalIdentity(loaded_pem, loaded_pem)
+
+            message = open(mfile, "r").read()
+            print(message)
+            msg = Request(Identity(destination), message)
+
+            print(tmm.send_as(ident, msg))
         elif command == "receive-as":
             loaded_pem = open(sys.argv[2], "rb").read()
             ident = LocalIdentity(loaded_pem, loaded_pem)
