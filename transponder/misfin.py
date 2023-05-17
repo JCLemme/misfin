@@ -19,8 +19,10 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 # this is software in flux - don't rely on it
 
+
 max_request_size = 2048
 default_port = 1958
+
 
 class Request:
     """ A Misfin request - here's some data, here's where it's going. """
@@ -135,7 +137,7 @@ class Response:
     def was_certificate_error(self): return self.status[0] == "6"
 
 
-def _receive_all(conn, size=max_request_size, timeout=20, until=b"\r\n"):
+def _receive_line(conn, size=max_request_size, timeout=20, until=b"\r\n"):
     """ Receives a Misfin request/response, with configurable timeout etc. """
     """ Note that this doesn't guarantee the received data will be valid... """
     raw = b""
@@ -174,7 +176,7 @@ def send_as(sender: LocalIdentity, req: Request, check_valid_method=_validate_no
 
     # Send our message and see if the destination accepts.
     sock.sendall(req.build())
-    response = Response.incoming(_receive_all(sock))
+    response = Response.incoming(_receive_line(sock))
 
     # Skadoodle
     sock.shutdown()
@@ -186,7 +188,7 @@ def receive_from(conn, server: LocalIdentity, peer: PeerIdentity, on_letter_rece
     """ Receives a Misfin message from a client. """
     # Do we want to receive this message?
     try:
-        req = Request.incoming(_receive_all(conn))
+        req = Request.incoming(_receive_line(conn))
         resp = on_letter_received(server, peer, req)
         conn.sendall(resp.build())
 
@@ -250,3 +252,26 @@ def receive_forever(server: LocalIdentity, on_letter_received, check_valid_metho
 
 
 
+
+
+
+
+# Shhhhh don't look 
+
+def do_via_tls(credentials: LocalIdentity, hostname: str, port: int, lo):
+    """ Sets up a TLS client context, and hands it off to a more useful function. """
+    context = ossl.Context( ossl.TLS_CLIENT_METHOD )
+    context.set_verify( ossl.VERIFY_PEER | ossl.VERIFY_FAIL_IF_NO_PEER_CERT, callback=check_valid_method)
+    context.use_certificate( ocrypt.X509.from_cryptography(credentials._cert) )
+    context.use_privatekey( ocrypt.PKey.from_cryptography_key(credentials._private) )
+    sock = ossl.Connection(context, socket.socket(socket.AF_INET, socket.SOCK_STREAM))    
+
+    sock.connect((hostname, port))
+    sock.set_connect_state()
+    sock.do_handshake()
+
+    result = callback(sock)
+
+    sock.shutdown()
+    sock.close()
+    return result
